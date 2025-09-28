@@ -102,8 +102,8 @@ HUGGING_FACE_API_KEY=your_hugging_face_api_key_here
 The config.json file is already included in this repository with default settings and session data structure.
 
 If you need to reset or create a new config.json, you can:
--Copy the sample config.json located in the repository root (or a subfolder named config)
--Or copy the following example content and save it as config.json in the project root:
+- Copy the sample config.json located in the repository root (or a subfolder named config)
+- Or copy the following example content and save it as config.json in the project root:
 ```json
 {
   "session_data": {
