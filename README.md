@@ -4,7 +4,7 @@ UniShell is an intelligent command-line interface that combines AI-powered natur
 
 ## 🏆 Hackathon Track
 
-**Track**: Terminal Toolbox Challenge - Exactly 250 Lines of Python    
+**Track**: Terminal Toolbox Challenge - Exactly 250 Lines of Python code    
 This project was developed for a hackathon with the constraint of creating a feature-rich Python application in exactly 250 lines of code, demonstrating clean, efficient programming practices while maximizing functionality.
 
 ## ✨ Features
