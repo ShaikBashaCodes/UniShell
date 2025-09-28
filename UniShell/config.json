@@ -1,8 +1,6 @@
 {
   "session_data": {
-    "commands_run": [
-      "exit"
-    ],
+    "commands_run": [],
     "files_generated": [],
     "errors_explained": []
   },
@@ -88,5 +86,37 @@
     "python": "\"\"\"{description}\"\"\"\ndef main():\n    print(\"{description}\")\n\nif __name__ == \"__main__\": main()",
     "c": "#include <stdio.h>\nint main() {\n    printf(\"{description}\\n\");\n    return 0;\n}",
     "cpp": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"{description}\" << endl;\n    return 0;\n}"
+  },
+  "help_commands": {
+    "natural_commands": [
+      "\ud83d\ude80 generate <algorithm> using <language>",
+      "\ud83d\udee0\ufe0f  create calculator using python in C:\\path",
+      "\ud83c\udfb2 make fibonacci using java and python",
+      "\u25b6\ufe0f  run my_program.py",
+      "\ud83d\udee0\ufe0f  compile Test.java"
+    ],
+    "direct_commands": [
+      "\u2699\ufe0f  generate/create/make <algorithm> using <language>",
+      "\u25b6\ufe0f  run/execute <filename>",
+      "\ud83d\udd28 compile <filename>",
+      "\ud83d\udcd6 explain <filename> or explain <error>"
+    ],
+    "system_commands": [
+      "\u2753 help - Show this guide",
+      "\ud83e\uddf9 clear/reset - Clear session data",
+      "\ud83d\udda5\ufe0f  cls/clr - Clear screen",
+      "\ud83d\udeaa exit/quit - Exit UniShell"
+    ],
+    "features": [
+      "\ud83e\udd16 AI-powered code generation and error analysis",
+      "\ud83c\udf10 Multi-language support (Python, Java, C, C++)",
+      "\ud83d\uddc2\ufe0f  Smart path handling for any directory",
+      "\ud83c\udff7\ufe0f  Intelligent filename generation",
+      "\u26a1 Natural language understanding"
+    ],
+    "examples": [
+      "\ud83d\udcc2 generate sorting algorithm using python at /tmp",
+      "\ud83c\udfae create game using java in C:\\Users\\Desktop"
+    ]
   }
 }

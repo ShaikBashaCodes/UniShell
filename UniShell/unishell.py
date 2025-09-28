@@ -2,13 +2,17 @@ import json,os,subprocess,sys,re
 from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
+
 class UniShell:
+    
+    # Initialize UniShell with configuration and session data
     def __init__(self):
         self.config = self.load_config(); self.session = self.config["session_data"].copy()
         self.history = []; self.hf_api_key = os.getenv("HUGGING_FACE_API_KEY", "")
-        print("🚀 UniShell AI - Advanced Human-Focused Generator")
-        print("🤖 Natural Commands: 'generate bubble sort using java in C:\\path'")
-        print("💡 Type 'help' for complete guide or 'cls' to clear screen\n")
+        print("🚀 UniShell - Advanced Human-Focused Generator")
+        print("🤖 Natural Commands: 'generate bubble sort using java in C:\\path' \n💡 Type 'help' for complete guide or 'cls' to clear screen\n")
+    
+    # Centralized AI method for all OpenAI API calls
     def AI(self, sys_prompt, user_prompt, temperature=0.2, max_tokens=800):
         if not self.hf_api_key: return None
         try:
@@ -19,31 +23,31 @@ class UniShell:
                 temperature=temperature, max_tokens=max_tokens)
             return response.choices[0].message.content.strip()
         except: return None
+    
+    # Load configuration from JSON file with error handling
     def load_config(self):
-        try:
-            with open('config.json', 'r') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            print("❌ Configuration file 'config.json' not found. Please create it before running UniShell.")
-            sys.exit(1)  # Exit program
-        except json.JSONDecodeError as e:
-            print(f"❌ Error parsing 'config.json': {e}")
-            sys.exit(1) # Exit program
+        try: return json.load(open('config.json','r',encoding='utf-8'))
+        except: print("❌ Config File error."); sys.exit(1)
+    
+    # Save current session data back to config file
     def save_config(self):
         self.config["session_data"] = self.session
         with open('config.json', 'w') as f: json.dump(self.config, f, indent=2)
+    
+    # Use AI to understand user input and extract structured data
     def ai_understand(self, user_input):
         if not self.hf_api_key: return self.human_parse(user_input)
         sys_prompt = "Extract from human request: action (generate/run/compile/explain), languages array, algorithm name, file if mentioned. Return JSON: {\"action\":\"generate\", \"languages\":[\"python\"], \"algorithm\":\"insertion_sort\"} or {\"action\":\"run\", \"file\":\"test.py\"}"
         content = self.AI(sys_prompt, user_input, 0.1, 100)
         if content and '{' in content:
             try:
-                start, end = content.find('{'), content.rfind('}') + 1
-                data = json.loads(content[start:end])
+                data = json.loads(content[(content.find('{')):(content.rfind('}') + 1)])
                 data["path"] = self.extract_path_from_input(user_input)
                 return data
             except: pass
         return self.human_parse(user_input)
+    
+    # Extract file path from user input using path markers
     def extract_path_from_input(self, user_input):
         for marker in self.config["path_markers"]:
             if marker in user_input.lower():
@@ -51,6 +55,8 @@ class UniShell:
                 path_candidate = user_input[idx:].strip()
                 if path_candidate: return os.path.normpath(path_candidate)
         return "."
+    
+    # Manual parsing fallback when AI is not available
     def human_parse(self, user_input):
         original_input = user_input.strip(); user_input = user_input.strip().lower()
         for polite in self.config["polite_words"]: 
@@ -67,17 +73,24 @@ class UniShell:
         elif user_input in ["cls", "clr"]: return {"action": "cls"}
         elif "exit" in user_input or "quit" in user_input: return {"action": "exit"}
         return {"action": "generate", "raw": user_input, "path": path}
+    
+    # Add command to history and maintain session data
     def add_to_history(self, command):
         self.history.append(command)
         if len(self.history) > 10: self.history.pop(0)
         self.session["commands_run"].append(command); self.save_config()
-    def get_file_language(self, filepath):
-        return self.config["languages"].get(Path(filepath).suffix.lower(), "unknown")
+    
+    # Detect programming language from file extension
+    def get_file_language(self, filepath): return self.config["languages"].get(Path(filepath).suffix.lower(), "unknown")
+    
+    # Display file contents with formatted output
     def show_file_content(self, filepath):
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read(); print(f"📄 {os.path.basename(filepath)}\n{'='*50}\n{content}\n{'='*50}"); return content
         except Exception as e: print(f"❌ Cannot read file: {e}"); return None
+    
+    # Compile source code files based on language type
     def compile_code(self, filepath):
         if not os.path.exists(filepath): print(f"❌ File not found: {filepath}"); return False
         lang = self.get_file_language(filepath); print(f"🔧 Compiling {lang}: {os.path.basename(filepath)}")
@@ -93,6 +106,8 @@ class UniShell:
                 else: print(f"❌ Compilation failed:\n{result.stderr}"); self.get_ai_help(result.stderr); return False
             else: print(f"✅ {lang} doesn\'t need compilation"); return True
         except FileNotFoundError: print("❌ Compiler not found"); return False
+    
+    # Execute compiled or interpreted code files
     def run_code(self, filepath):
         if not os.path.exists(filepath): print(f"❌ File not found: {filepath}"); return
         print(f"🚀 Running: {os.path.basename(filepath)}")
@@ -109,18 +124,22 @@ class UniShell:
             elif lang == "python": subprocess.run([sys.executable, filepath], cwd=dirname); print()
             else: print(f"❌ Language {lang} not supported")
         except Exception as e: print(f"❌ Execution error: {e}")
+    
+    # Get AI assistance for error analysis and solutions
     def get_ai_help(self, query):
         if not self.hf_api_key: print("💡 Set HUGGING_FACE_API_KEY environment variable for AI assistance"); return
-        print("🤖 AI Analyzing ..., please wait...")
+        print("🤖 AI Analyzing.., please wait...")
         sys_prompt = "Programming expert. Provide clear, actionable solutions with examples. Keep response under 700 words."
-        result = self.AI(sys_prompt, f"Fix this programming error or explanation: {query}", 0.2, 700)
+        result = self.AI(sys_prompt, f"Fix this programming error or explanation and keep response under 650 words with completed solution: {query}", 0.2, 700)
         if result: print(f"🤖 AI Solution:\n{result}")
         else: print("❌ AI analysis failed")
         self.session["errors_explained"].append(query[:100]); self.save_config()
+    
+    # Generate smart filenames using AI or algorithm mapping
     def smart_filename(self, description):
         if self.hf_api_key:
             sys_prompt = "Expert filename generator. Suggest concise, relevant filename without extension."
-            result = self.AI(sys_prompt, f"Suitable Filename for: {description} which is short but defines the code in that file.", 0.3, 10)
+            result = self.AI(sys_prompt, f"Suitable Filename for: {description} which is short but defines the code in that file.", 0.2, 10)
             if result:
                 filename = ''.join(c for c in result if c.isalnum() or c in ['_', '-']).replace(' ', '_').strip()
                 if filename: return filename.lower()
@@ -132,6 +151,8 @@ class UniShell:
             for i, word in enumerate(words):
                 if word == "program" and i > 0: return f"{words[i-1]}_program"
         return "program"
+    
+    # Detect programming languages from user description
     def detect_languages(self, description):
         desc = description.lower()
         for pattern, langs in self.config["language_patterns"]:
@@ -144,6 +165,8 @@ class UniShell:
         if 'c++' in desc or 'cpp' in desc: return ['cpp']
         if ' c ' in desc or desc.endswith(' c'): return ['c']
         return ['python']
+    
+    # Clean AI-generated code by removing markdown formatting
     def clean_code(self, code):
         if not code: return ""
         lines = code.split('\n'); cleaned = []
@@ -154,6 +177,8 @@ class UniShell:
         result = '\n'.join(cleaned).strip()
         while '\n\n\n' in result: result = result.replace('\n\n\n', '\n\n')
         return result
+    
+    # Generate complete source code files using AI
     def generate_code(self, filepath, language, description):
         if os.path.dirname(filepath): os.makedirs(os.path.dirname(filepath), exist_ok=True)
         if os.path.exists(filepath): print(f"❌ File exists: {os.path.basename(filepath)}"); return
@@ -175,46 +200,35 @@ class UniShell:
                 print(f"✅ Generated: {os.path.basename(filepath)}"); self.session["files_generated"].append(filepath); self.save_config()
                 self.show_file_content(filepath); return
         self.create_template(filepath, language, description)
+    
+    # Create basic code templates when AI is not available
     def create_template(self, filepath, language, description):
         class_name = Path(filepath).stem.replace('_', '').title()
         template = self.config["templates"].get(language, self.config["templates"]["python"])
         code = template.format(class_name=class_name, description=description)
         with open(filepath, 'w', encoding='utf-8') as f: f.write(code)
         print(f"✅ Template created: {os.path.basename(filepath)}"); self.session["files_generated"].append(filepath); self.save_config()
+    
+    # Extract filename with extension from user input text
     def extract_filename(self, text):
         for word in text.split():
             if "." in word and any(word.endswith(ext) for ext in [".py", ".java", ".c", ".cpp", ".js"]): return word
         return None
+    
+    # Display help guide from config or fallback text
     def show_help(self):
-        print("🚀 UniShell AI - Complete Command Guide")
-        print("=" * 60)
-        print("🎯 NATURAL LANGUAGE COMMANDS:")
-        print("  💬 \'generate bubble sort using java\'")
-        print("  💬 \'create calculator using python in C:\\path\'")
-        print("  💬 \'make fibonacci using java and python\'")
-        print("  💬 \'run my_program.py\' or \'compile Test.java\'")
-        print("\n🔧 DIRECT COMMANDS:")
-        print("  📝 generate/create/make <algorithm> using <language>")
-        print("  ▶️  run/execute <filename>")
-        print("  🔨 compile <filename>")
-        print("  📖 explain <filename> or explain <error>")
-        print("\n🎛️  SYSTEM COMMANDS:")
-        print("  📋 help - Show this guide")
-        print("  🧹 clear/reset - Clear session data")
-        print("  🖥️  cls/clr - Clear screen")
-        print("  🚪 exit/quit - Exit UniShell")
-        print("\n🌟 FEATURES:")
-        print("  🤖 AI-powered code generation and error analysis")
-        print("  📁 Multi-language support (Python, Java, C, C++)")
-        print("  🗂️  Smart path handling for any directory")
-        print("  🏷️  Intelligent filename generation")
-        print("  ⚡ Natural language understanding")
-        print("\n💡 Examples with paths:")
-        print("  \'generate sorting algorithm using python at /tmp\'")
-        print("  \'create game using java in C:\\Users\\Desktop\'")
-        print("=" * 60)
-    def show_history(self):
-        print("📚 Command History:"); [print(f"  {i}. {cmd}") for i, cmd in enumerate(self.history[-5:], 1)] if self.history else print("  No commands yet")
+        try:
+            help_data = self.config.get("help_commands", {})
+            print("🚀 UniShell - Command Guide\n" + "="*40)
+            for section, items in help_data.items():
+                print(f"\n{section.replace('_', ' ').title()}:\n")
+                for cmd in items:
+                    print(f"  {cmd}")
+            print("="*40)
+        except Exception:
+            print("Commands:\n generate <alg> using <lang> | run/compile/explain <file>\n clear/reset | cls/clr | help | exit")
+    
+    # Show session summary with statistics on exit
     def exit_summary(self):
         print("\n" + "=" * 50)
         print("📊 SESSION SUMMARY")
@@ -225,11 +239,13 @@ class UniShell:
         if self.session["files_generated"]: 
             print(f"📂 Recent files: {', '.join([os.path.basename(f) for f in self.session['files_generated'][-3:]])}")
         print("=" * 50)
-        self.save_config(); print("🚀 Thank you for using UniShell AI! Session saved.")
+        self.save_config(); print("🚀 Thank you for using UniShell! Session saved.")
+    
+    # Main application loop handling user commands
     def run(self):
         while True:
             try:
-                user_input = input("🚀 UniShell AI> ").strip()
+                user_input = input("🚀 UniShell > ").strip()
                 if not user_input: continue
                 self.add_to_history(user_input); data = self.ai_understand(user_input); action = data.get("action", "help")
                 if action == "exit": self.exit_summary(); break
@@ -238,23 +254,24 @@ class UniShell:
                     self.session = {"commands_run": [], "files_generated": [], "errors_explained": []}
                     self.history = []; self.save_config(); print("🧹 Session data cleared successfully")    
                 elif action == "cls": os.system('cls' if os.name == 'nt' else 'clear')
-                elif action == "run":
-                    if "file" in data: self.run_code(data["file"])
-                    elif "raw" in data:
-                        filename = self.extract_filename(data["raw"])
-                        if filename: self.run_code(filename)
-                        else: print("❌ Please specify a file to run")
-                elif action == "compile":
-                    if "file" in data: self.compile_code(data["file"])
-                    elif "raw" in data:
-                        filename = self.extract_filename(data["raw"])
-                        if filename: self.compile_code(filename)
-                        else: print("❌ Please specify a file to compile")
-                elif action == "explain":
-                    if "file" in data: 
-                        if os.path.exists(data["file"]): content = self.show_file_content(data["file"]); self.get_ai_help(f"Explain this code: {content}")
-                        else: print(f"❌ File not found: {data['file']}")
-                    elif "raw" in data: self.get_ai_help(data["raw"])
+                elif action in ("run", "compile", "explain"):
+                    cmd = action
+                    target = data.get("file") or self.extract_filename(data.get("raw", "")) or None
+                    if not target:
+                        print(f"❌ Please specify a file to {cmd}")
+                        continue
+                    if not os.path.isabs(target):
+                        target = os.path.normpath(os.path.join(data.get("path","."), target))
+                    if cmd == "run":
+                        self.run_code(target)
+                    elif cmd == "compile":
+                        self.compile_code(target)
+                    else: 
+                        if os.path.exists(target):
+                            content = self.show_file_content(target)
+                            self.get_ai_help(f"Explain this code: {content}")
+                        else:
+                            print(f"❌ File not found: {target}")
                 elif action == "generate":
                     if "languages" in data and "algorithm" in data:
                         languages, algorithm = data["languages"], data["algorithm"]
@@ -275,4 +292,6 @@ class UniShell:
                 else: print("🤔 Type \'help\' for available commands")
             except KeyboardInterrupt: print("\n👋 Goodbye! Use \'exit\' for session summary."); break
             except Exception as e: print(f"❌ Unexpected error: {e}")
+
+# Entry point of the script: create a UniShell instance and start the interactive run loop
 if __name__ == "__main__": UniShell().run()
