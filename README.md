@@ -127,6 +127,12 @@ If you need to reset or create a new config.json, you can:
     "files_generated": [],
     "errors_explained": []
   },
+  "colors": {
+    "header": "\u001b[35m",
+    "success": "\u001b[32m",
+    "error": "\u001b[31m",
+    "reset": "\u001b[0m"
+  },
   "languages": {
     ".py": "python",
     ".java": "java",
