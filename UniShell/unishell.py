@@ -9,8 +9,8 @@ class UniShell:
     def __init__(self):
         self.config = self.load_config(); self.session = self.config["session_data"].copy()
         self.history = []; self.hf_api_key = os.getenv("HUGGING_FACE_API_KEY", "")
-        print("🚀 UniShell - Advanced Human-Focused Generator")
-        print("🤖 Natural Commands: 'generate bubble sort using java in C:\\path' \n💡 Type 'help' for complete guide or 'cls' to clear screen\n")
+        print(f"{self.config['colors']['header']}🚀 UniShell - Advanced Human-Focused Generator{self.config['colors']['reset']}")
+        print(f"{self.config['colors']['header']}🤖 Natural Commands: 'generate bubble sort using java in C:\\path' \n💡 Type 'help' for complete guide or 'cls' to clear screen\n{self.config['colors']['reset']}")
     
     # Centralized AI method for all OpenAI API calls
     def AI(self, sys_prompt, user_prompt, temperature=0.2, max_tokens=800):
@@ -27,7 +27,7 @@ class UniShell:
     # Load configuration from JSON file with error handling
     def load_config(self):
         try: return json.load(open('config.json','r',encoding='utf-8'))
-        except: print("❌ Config File error."); sys.exit(1)
+        except: print(f"{'\u001b[31m'}❌ Config File error.{'\u001b[0m'}"); sys.exit(1)
     
     # Save current session data back to config file
     def save_config(self):
@@ -88,28 +88,28 @@ class UniShell:
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read(); print(f"📄 {os.path.basename(filepath)}\n{'='*50}\n{content}\n{'='*50}"); return content
-        except Exception as e: print(f"❌ Cannot read file: {e}"); return None
+        except Exception as e: print(f"{self.config['colors']['error']}❌ Cannot read file: {e}{self.config['colors']['reset']}"); return None
     
     # Compile source code files based on language type
     def compile_code(self, filepath):
-        if not os.path.exists(filepath): print(f"❌ File not found: {filepath}"); return False
+        if not os.path.exists(filepath): print(f"{self.config['colors']['error']}❌ File not found: {filepath}"); return False
         lang = self.get_file_language(filepath); print(f"🔧 Compiling {lang}: {os.path.basename(filepath)}")
         try:
             if lang == "java":
                 result = subprocess.run(["javac", filepath], capture_output=True, text=True, cwd=os.path.dirname(filepath) or ".")
-                if result.returncode == 0: print("✅ Compilation successful"); return True
-                else: print(f"❌ Compilation failed:\n{result.stderr}"); self.get_ai_help(result.stderr); return False
+                if result.returncode == 0: print(f"{self.config['colors']['success']}✅ Compilation successful{self.config['colors']['reset']}"); return True
+                else: print(f"{self.config['colors']['error']}❌ Compilation failed:\n{result.stderr}{self.config['colors']['reset']}"); self.get_ai_help(result.stderr); return False
             elif lang in ["c", "cpp"]:
                 compiler = "gcc" if lang == "c" else "g++"; output_file = str(Path(filepath).with_suffix(".exe" if os.name == "nt" else ""))
                 result = subprocess.run([compiler, filepath, "-o", output_file], capture_output=True, text=True)
-                if result.returncode == 0: print("✅ Compilation successful"); return True
-                else: print(f"❌ Compilation failed:\n{result.stderr}"); self.get_ai_help(result.stderr); return False
-            else: print(f"✅ {lang} doesn\'t need compilation"); return True
-        except FileNotFoundError: print("❌ Compiler not found"); return False
+                if result.returncode == 0: print(f"{self.config['colors']['success']}✅ Compilation successful{self.config['colors']['reset']}"); return True
+                else: print(f"{self.config['colors']['error']}❌ Compilation failed:\n{result.stderr}{self.config['colors']['reset']}"); self.get_ai_help(result.stderr); return False
+            else: print(f"{self.config['colors']['success']}✅ {lang} doesn\'t need compilation{self.config['colors']['reset']}"); return True
+        except FileNotFoundError: print("{self.config['colors']['error']}❌ Compiler not found{self.config['colors']['reset']}"); return False
     
     # Execute compiled or interpreted code files
     def run_code(self, filepath):
-        if not os.path.exists(filepath): print(f"❌ File not found: {filepath}"); return
+        if not os.path.exists(filepath): print(f"{self.config['colors']['error']}❌ File not found: {filepath}{self.config['colors']['reset']}"); return
         print(f"🚀 Running: {os.path.basename(filepath)}")
         lang = self.get_file_language(filepath); dirname = os.path.dirname(filepath) or "."
         try:
@@ -122,24 +122,24 @@ class UniShell:
                 if not os.path.exists(exe): self.compile_code(filepath)
                 subprocess.run([exe] if os.name == "nt" else [f"./{Path(exe).name}"], cwd=dirname); print()
             elif lang == "python": subprocess.run([sys.executable, filepath], cwd=dirname); print()
-            else: print(f"❌ Language {lang} not supported")
-        except Exception as e: print(f"❌ Execution error: {e}")
+            else: print(f"{self.config['colors']['error']}❌ Language {lang} not supported{self.config['colors']['reset']}")
+        except Exception as e: print(f"{self.config['colors']['error']}❌ Execution error: {e}{self.config['colors']['reset']}")
     
     # Get AI assistance for error analysis and solutions
     def get_ai_help(self, query):
         if not self.hf_api_key: print("💡 Set HUGGING_FACE_API_KEY environment variable for AI assistance"); return
-        print("🤖 AI Analyzing, please wait...")
+        print(f"{self.config['colors']['header']}🤖 AI Analyzing, please wait...{self.config['colors']['reset']}")
         sys_prompt = "Programming expert. Provide clear, actionable solutions with examples. Keep response under 700 words."
         result = self.AI(sys_prompt, f"Fix this programming error or explanation and keep response under 650 words with completed solution: {query}", 0.2, 1000)
-        if result: print(f"🤖 AI Solution:\n{result}")
-        else: print("❌ AI analysis failed")
+        if result: print(f"{self.config['colors']['header']}🤖 AI Solution:{self.config['colors']['reset']}\n{result}")
+        else: print(f"{self.config['colors']['error']}❌ AI analysis failed{self.config['colors']['reset']}")
         self.session["errors_explained"].append(query[:100]); self.save_config()
     
     # Generate smart filenames using AI or algorithm mapping
     def smart_filename(self, description):
         if self.hf_api_key:
-            sys_prompt = "Expert filename generator. Suggest concise, relevant filename without extension."
-            result = self.AI(sys_prompt, f"Suitable Filename for: {description} which is short but defines the code in that file.", 0.2, 10)
+            sys_prompt = "Expert filename generator. Generate a concise, relevant filename without extension. Only output the filename string, no extra text or explanation. The filename should be short, meaningful, and should not contain any language or file type names."
+            result = self.AI(sys_prompt, f"Filename for: {description} which is short, clear, and defines the code purpose. Output only filename without extension or language names.", 0.2, 10)
             if result:
                 filename = ''.join(c for c in result if c.isalnum() or c in ['_', '-']).replace(' ', '_').strip()
                 if filename: return filename.lower()
@@ -181,13 +181,13 @@ class UniShell:
     # Generate complete source code files using AI
     def generate_code(self, filepath, language, description):
         if os.path.dirname(filepath): os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        if os.path.exists(filepath): print(f"❌ File exists: {os.path.basename(filepath)}"); return
-        print(f"🤖 Creating {language}: {os.path.basename(filepath)} → {os.path.dirname(filepath) or 'current directory'}")
+        if os.path.exists(filepath): print(f"{self.config['colors']['error']}❌ File exists: {os.path.basename(filepath)}{self.config['colors']['reset']}"); return
+        print(f"{self.config['colors']['header']}🤖 Creating {language}: {os.path.basename(filepath)} → {os.path.dirname(filepath) or 'current directory'}{self.config['colors']['reset']}")
         if self.hf_api_key:
             sys_prompt = f"Expert {language} programmer. Write clean, production-ready code without markdown formatting."
             user_prompt = f"Create complete {language} program for: {description}. Include imports, main function, and helpful comments. Return ONLY {language} code. With user inputs and proper error handling in the code."
             if language == "java": user_prompt += " Use public class with proper structure."
-            code = self.AI(sys_prompt, user_prompt, 0.15, 800)
+            code = self.AI(sys_prompt, user_prompt, 0.15, 2500)
             if code:
                 code = self.clean_code(code)
                 if language == "java":
@@ -197,7 +197,7 @@ class UniShell:
                         new_filepath = os.path.join(os.path.dirname(filepath), f"{class_name}.java")
                         if new_filepath != filepath: filepath = new_filepath; print(f"📁 Using class name: {class_name}.java")
                 with open(filepath, 'w', encoding='utf-8') as f: f.write(code)
-                print(f"✅ Generated: {os.path.basename(filepath)}"); self.session["files_generated"].append(filepath); self.save_config()
+                print(f"{self.config['colors']['success']}✅ Generated: {os.path.basename(filepath)}{self.config['colors']['reset']}"); self.session["files_generated"].append(filepath); self.save_config()
                 self.show_file_content(filepath); return
         self.create_template(filepath, language, description)
     
@@ -207,7 +207,7 @@ class UniShell:
         template = self.config["templates"].get(language, self.config["templates"]["python"])
         code = template.format(class_name=class_name, description=description)
         with open(filepath, 'w', encoding='utf-8') as f: f.write(code)
-        print(f"✅ Template created: {os.path.basename(filepath)}"); self.session["files_generated"].append(filepath); self.save_config()
+        print(f"{self.config['colors']['success']}✅ Template created: {os.path.basename(filepath)}{self.config['colors']['reset']}"); self.session["files_generated"].append(filepath); self.save_config()
     
     # Extract filename with extension from user input text
     def extract_filename(self, text):
@@ -245,20 +245,20 @@ class UniShell:
     def run(self):
         while True:
             try:
-                user_input = input("🚀 UniShell > ").strip()
+                user_input = input("🚀 UniShell \033[38;2;249;114;114m>\033[0m ").strip()
                 if not user_input: continue
                 self.add_to_history(user_input); data = self.ai_understand(user_input); action = data.get("action", "help")
                 if action == "exit": self.exit_summary(); break
                 elif action == "help": self.show_help()
                 elif action == "clear":
                     self.session = {"commands_run": [], "files_generated": [], "errors_explained": []}
-                    self.history = []; self.save_config(); print("🧹 Session data cleared successfully")    
+                    self.history = []; self.save_config(); print(f"{self.config['colors']['success']}🧹 Session data cleared successfully{self.config['colors']['reset']}")  
                 elif action == "cls": os.system('cls' if os.name == 'nt' else 'clear')
                 elif action in ("run", "compile", "explain"):
                     cmd = action
                     target = data.get("file") or self.extract_filename(data.get("raw", "")) or None
                     if not target:
-                        print(f"❌ Please specify a file to {cmd}")
+                        print(f"{self.config['colors']['error']}❌ Please specify a file to {cmd}{self.config['colors']['reset']}")
                         continue
                     if not os.path.isabs(target):
                         target = os.path.normpath(os.path.join(data.get("path","."), target))
@@ -271,7 +271,7 @@ class UniShell:
                             content = self.show_file_content(target)
                             self.get_ai_help(f"Explain this code: {content}")
                         else:
-                            print(f"❌ File not found: {target}")
+                            print(f"{self.config['colors']['error']}❌ File not found: {target}{self.config['colors']['reset']}")
                 elif action in ("generate", "create"):
                     if "languages" in data and "algorithm" in data:
                         languages, algorithm = data["languages"], data["algorithm"]
@@ -288,10 +288,10 @@ class UniShell:
                             ext = {v: k for k, v in lang_map.items()}.get(lang, ".py")
                             filepath = os.path.join(base_path, f"{filename_base}{ext}")
                             self.generate_code(filepath, lang, raw)
-                    else: print("❌ Try: \'generate bubble sort using python\'")
+                    else: print(f"{self.config['colors']['error']}❌ Try: \'generate bubble sort using python\'{self.config['colors']['reset']}")
                 else: print("Type \'help\' for available commands")
-            except KeyboardInterrupt: print("\n👋 Goodbye! Use \'exit\' for session summary."); break
-            except Exception as e: print(f"❌ Unexpected error, maybe JSON parsing failed due to absent or invalid fields: {e}")
+            except KeyboardInterrupt: print(f"{self.config['colors']['header']}\n👋 Goodbye! Use 'exit' for session summary.{self.config['colors']['reset']}"); break
+            except Exception as e: print(f"{self.config['colors']['error']}❌ Unexpected error, maybe JSON parsing failed due to absent or invalid fields: {e}{self.config['colors']['reset']}")
 
 # Entry point of the script: create a UniShell instance and start the interactive run loop
 if __name__ == "__main__": UniShell().run()
