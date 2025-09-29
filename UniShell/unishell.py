@@ -37,7 +37,7 @@ class UniShell:
     # Use AI to understand user input and extract structured data
     def ai_understand(self, user_input):
         if not self.hf_api_key: return self.human_parse(user_input)
-        sys_prompt = "Extract from human request: action (generate/run/compile/explain), languages array, algorithm name, file if mentioned. Return JSON: {\"action\":\"generate\", \"languages\":[\"python\"], \"algorithm\":\"insertion_sort\"} or {\"action\":\"run\", \"file\":\"test.py\"}"
+        sys_prompt = "Extract from human request: action (generate/create/run/compile/explain), languages array, algorithm name, file if mentioned. Return JSON: {\"action\":\"generate\", \"languages\":[\"python\"], \"algorithm\":\"insertion_sort\"} or {\"action\":\"run\", \"file\":\"test.py\"}"
         content = self.AI(sys_prompt, user_input, 0.1, 100)
         if content and '{' in content:
             try:
@@ -128,9 +128,9 @@ class UniShell:
     # Get AI assistance for error analysis and solutions
     def get_ai_help(self, query):
         if not self.hf_api_key: print("💡 Set HUGGING_FACE_API_KEY environment variable for AI assistance"); return
-        print("🤖 AI Analyzing.., please wait...")
+        print("🤖 AI Analyzing, please wait...")
         sys_prompt = "Programming expert. Provide clear, actionable solutions with examples. Keep response under 700 words."
-        result = self.AI(sys_prompt, f"Fix this programming error or explanation and keep response under 650 words with completed solution: {query}", 0.2, 700)
+        result = self.AI(sys_prompt, f"Fix this programming error or explanation and keep response under 650 words with completed solution: {query}", 0.2, 1000)
         if result: print(f"🤖 AI Solution:\n{result}")
         else: print("❌ AI analysis failed")
         self.session["errors_explained"].append(query[:100]); self.save_config()
@@ -272,7 +272,7 @@ class UniShell:
                             self.get_ai_help(f"Explain this code: {content}")
                         else:
                             print(f"❌ File not found: {target}")
-                elif action == "generate":
+                elif action in ("generate", "create"):
                     if "languages" in data and "algorithm" in data:
                         languages, algorithm = data["languages"], data["algorithm"]
                         base_path = data.get("path", "."); lang_map = self.config["languages"]
@@ -289,9 +289,9 @@ class UniShell:
                             filepath = os.path.join(base_path, f"{filename_base}{ext}")
                             self.generate_code(filepath, lang, raw)
                     else: print("❌ Try: \'generate bubble sort using python\'")
-                else: print("🤔 Type \'help\' for available commands")
+                else: print("Type \'help\' for available commands")
             except KeyboardInterrupt: print("\n👋 Goodbye! Use \'exit\' for session summary."); break
-            except Exception as e: print(f"❌ Unexpected error: {e}")
+            except Exception as e: print(f"❌ Unexpected error, maybe JSON parsing failed due to absent or invalid fields: {e}")
 
 # Entry point of the script: create a UniShell instance and start the interactive run loop
 if __name__ == "__main__": UniShell().run()
