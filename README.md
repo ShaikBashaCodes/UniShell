@@ -105,7 +105,7 @@ cd UniShell/UniShell
 
 #### 2. Install Python Dependencies
 ```bash
-pip install python-dotenv openai
+pip install -r requirements.txt
 ```
 
 #### 3. Set Up Environment Variables
