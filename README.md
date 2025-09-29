@@ -5,7 +5,7 @@ UniShell is an intelligent command-line interface that combines AI-powered natur
 ## 🏆 Hackathon Track
 
 **Track**: Terminal Toolbox Challenge - Exactly 250 Lines of Python code    
-This project was developed for a hackathon with the constraint of creating a feature-rich Python application in exactly 250 lines of code, demonstrating clean, efficient programming practices while maximizing functionality.
+This project was created for a hackathon requiring the development of a CLI tool in any programming language with a strict line limit. Here, I used Python to build the CLI tool in exactly 250 lines, showcasing clean, efficient coding and maximized functionality.
 
 ## ✨ Features
 
@@ -59,6 +59,22 @@ This project was developed for a hackathon with the constraint of creating a fea
 - **File Tracking**: Monitors all generated files
 - **Error Logging**: Records AI-analyzed errors
 - **Session Persistence**: Saves data to JSON configuration
+
+## Problems Solved
+
+- **Complex Setup**: Eliminates manual project scaffolding by generating ready-to-run code across languages.  
+- **Context Switching**: Avoids switching between editor, compiler, and terminal—everything runs in one CLI.  
+- **Boilerplate Overhead**: Removes repetitive template coding for algorithms and utilities.  
+- **Language Barriers**: Enables multi-language output from a single natural-language command.  
+- **Error Diagnosis**: Provides instant AI-powered explanations and fixes for compile/runtime errors.  
+
+## How It Helps Developers
+
+- **Speeds Prototyping**: Generate, compile, and run code in seconds without leaving the terminal.  
+- **Enhances Learning**: Line-by-line AI explanations deepen understanding of unfamiliar code.  
+- **Improves Consistency**: Enforces clean structure and best practices through template-based generation.  
+- **Boosts Productivity**: Tracks history, manages files, and preserves session context automatically.  
+- **Reduces Friction**: Works offline with templates when no API key is available, ensuring continuous development.
 
 ## 🛠️ Technologies Used
 
